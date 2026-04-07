@@ -59,7 +59,7 @@ The system operates as a state machine with three primary layers:
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/royal/anonmusk_agent.git
+git clone https://github.com/CodeThief831/AGENT_AnOnMuSk
 cd anonmusk_agent
 
 # Create virtual environment
