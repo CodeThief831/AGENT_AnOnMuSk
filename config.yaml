@@ -1,0 +1,80 @@
+﻿# ============================================================
+# AGENT ANONMUSK — Default Configuration
+# ============================================================
+
+general:
+  project_name: "AGENT ANONMUSK"
+  version: "1.0.0"
+  output_dir: "./output"
+  log_level: "INFO"
+  max_concurrent_tasks: 10
+
+llm:
+  provider: "openai"            # openai | anthropic
+  model: "gpt-4o"
+  temperature: 0.2
+  max_tokens: 4096
+  retry_attempts: 3
+  retry_delay: 2.0              # seconds
+
+scanning:
+  rate_limit: 10                # requests per second
+  request_timeout: 30           # seconds
+  max_redirects: 5
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  verify_ssl: true
+
+recon:
+  subdomain_tools:
+    - subfinder
+    - amass
+    - assetfinder
+  endpoint_tools:
+    - waybackurls
+    - gau
+    - katana
+  enable_js_analysis: true
+  enable_tech_fingerprint: true
+
+attack:
+  enable_auth_testing: true
+  enable_injection_testing: true
+  enable_api_testing: true
+  waf_evasion: true
+  max_payloads_per_param: 50
+  blind_injection_delay: 5      # seconds for time-based checks
+
+fuzzer:
+  mutation_rounds: 10
+  seed_selection: "ucb"         # ucb | random | mcts
+  crossover_rate: 0.3
+  mutation_rate: 0.7
+
+nuclei:
+  enabled: true
+  severity_filter:
+    - critical
+    - high
+    - medium
+  rate_limit: 150
+  bulk_size: 25
+  templates_dir: ""             # empty = use default templates
+
+reporting:
+  format:
+    - markdown
+    - json
+  include_poc_scripts: true
+  include_remediation: true
+  cvss_version: "3.1"
+
+tools:
+  # Override paths if tools aren't on $PATH
+  amass: "amass"
+  subfinder: "subfinder"
+  assetfinder: "assetfinder"
+  httpx_cli: "httpx"
+  nuclei: "nuclei"
+  waybackurls: "waybackurls"
+  gau: "gau"
+  katana: "katana"
