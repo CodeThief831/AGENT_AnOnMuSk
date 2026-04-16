@@ -283,7 +283,7 @@ class Orchestrator:
             )
         ]
 
-        def top_urls(items: list[Any], limit: int = 20) -> list[str]:
+        def extract_limited_urls(items: list[Any], limit: int = 20) -> list[str]:
             return [ep.url for ep in items[:limit]]
 
         plan: list[dict[str, Any]] = [
@@ -294,7 +294,7 @@ class Orchestrator:
             plan.append({
                 "module": "username_enum",
                 "priority": 2,
-                "params": {"target_urls": top_urls(auth_endpoints, 5)},
+                "params": {"target_urls": extract_limited_urls(auth_endpoints, 5)},
             })
 
         xss_targets = interesting_endpoints or endpoints_with_params
@@ -302,31 +302,31 @@ class Orchestrator:
             plan.append({
                 "module": "xss",
                 "priority": 3,
-                "params": {"target_urls": top_urls(xss_targets, 20)},
+                "params": {"target_urls": extract_limited_urls(xss_targets, 20)},
             })
             plan.append({
                 "module": "sqli",
                 "priority": 4,
-                "params": {"target_urls": top_urls(xss_targets, 20)},
+                "params": {"target_urls": extract_limited_urls(xss_targets, 20)},
             })
 
         if cmdi_endpoints:
             plan.append({
                 "module": "command_injection",
                 "priority": 5,
-                "params": {"target_urls": top_urls(cmdi_endpoints, 15)},
+                "params": {"target_urls": extract_limited_urls(cmdi_endpoints, 15)},
             })
 
         if api_endpoints:
             plan.append({
                 "module": "api_bola",
                 "priority": 6,
-                "params": {"target_urls": top_urls(api_endpoints, 15)},
+                "params": {"target_urls": extract_limited_urls(api_endpoints, 15)},
             })
             plan.append({
                 "module": "rate_limit",
                 "priority": 7,
-                "params": {"target_urls": top_urls(api_endpoints, 15)},
+                "params": {"target_urls": extract_limited_urls(api_endpoints, 15)},
             })
 
         if self.config.get("nuclei", {}).get("enabled", True):

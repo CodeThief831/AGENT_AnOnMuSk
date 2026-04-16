@@ -138,6 +138,12 @@ class SessionAuditor(BaseModule):
         if not missing:
             return
 
+        header_evidence = evidence.model_copy(update={
+            "request_url": evidence.request_url or host,
+            "response_headers": {k: v for k, v in headers.items()},
+            "notes": f"Missing headers: {', '.join(missing)}",
+        })
+
         finding = Finding(
             title=f"Missing Security Headers at {host}",
             vuln_type=VulnType.MISCONFIG,
@@ -146,11 +152,7 @@ class SessionAuditor(BaseModule):
                 "The target response is missing recommended HTTP security headers.\n"
                 + "\n".join(f"- {h}: {required[h]}" for h in missing)
             ),
-            evidence=[Evidence(
-                request_url=host,
-                response_headers={k: v for k, v in headers.items()},
-                notes=f"Missing headers: {', '.join(missing)}",
-            )],
+            evidence=[header_evidence],
             confidence=0.9,
             target_url=host,
             remediation=(
