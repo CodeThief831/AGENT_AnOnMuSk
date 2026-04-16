@@ -126,7 +126,8 @@ class SessionAuditor(BaseModule):
 
     def _check_security_headers(self, host: str, headers: Any, evidence: Evidence):
         """Check missing baseline security headers."""
-        header_names = {str(k).lower(): str(v) for k, v in headers.items()}
+        response_headers = {str(k): str(v) for k, v in headers.items()}
+        header_names = {k.lower() for k in response_headers}
         required = {
             "content-security-policy": "Mitigates XSS impact by restricting script sources.",
             "x-frame-options": "Mitigates clickjacking by preventing framing.",
@@ -140,7 +141,7 @@ class SessionAuditor(BaseModule):
 
         header_evidence = evidence.model_copy(update={
             "request_url": evidence.request_url or host,
-            "response_headers": {k: v for k, v in headers.items()},
+            "response_headers": response_headers,
             "notes": f"Missing headers: {', '.join(missing)}",
         })
 

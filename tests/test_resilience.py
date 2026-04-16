@@ -18,7 +18,7 @@ def test_orchestrator_default_attack_plan_includes_core_modules():
     with tempfile.TemporaryDirectory() as tmpdir:
         orch = Orchestrator(
             target="example.com",
-            config_path="/tmp/mock_config_for_test.yaml",
+            config_path=f"{tmpdir}/mock_config_for_test.yaml",
             output_dir=tmpdir,
             api_key="",
         )
