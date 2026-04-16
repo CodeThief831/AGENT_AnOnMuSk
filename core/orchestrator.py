@@ -231,21 +231,108 @@ class Orchestrator:
         """LLM analyzes recon data and decides attack vectors."""
         from brain.reasoning import ReasoningEngine
 
-        self._brain = ReasoningEngine(
-            provider=self.llm_provider,
-            model=self.llm_model,
-            api_key=self.api_key,
-            config=self.config,
-        )
+        try:
+            self._brain = ReasoningEngine(
+                provider=self.llm_provider,
+                model=self.llm_model,
+                api_key=self.api_key,
+                config=self.config,
+            )
+            attack_plan = await self._brain.analyze_recon(self.ctx)
+            if not attack_plan:
+                raise ValueError("LLM returned an empty attack plan")
+        except Exception as e:
+            logger.warning("LLM analysis failed, using heuristic attack plan: %s", e)
+            attack_plan = self._default_attack_plan()
+            self.ctx.add_event(
+                event_type="analysis_fallback",
+                module="orchestrator",
+                message=f"Using heuristic attack plan due to LLM failure: {e}",
+                data={"fallback_plan": attack_plan},
+            )
 
-        attack_plan = await self._brain.analyze_recon(self.ctx)
         self.ctx.attack_queue = attack_plan
         self.ctx.add_event(
             event_type="analysis",
             module="brain",
-            message=f"LLM proposed {len(attack_plan)} attack vectors",
+            message=f"Prepared {len(attack_plan)} attack vectors",
             data={"attack_plan": attack_plan},
         )
+
+    def _default_attack_plan(self) -> list[dict[str, Any]]:
+        """Build a heuristic attack plan when LLM analysis is unavailable."""
+        endpoints_with_params = [ep for ep in self.ctx.endpoints if ep.params]
+        interesting_endpoints = [ep for ep in endpoints_with_params if ep.interesting]
+        api_endpoints = [
+            ep for ep in endpoints_with_params
+            if "/api/" in ep.url.lower() or ep.url.lower().rstrip("/").endswith("/api")
+        ]
+        auth_endpoints = [
+            ep for ep in self.ctx.endpoints
+            if any(
+                kw in ep.url.lower()
+                for kw in ("login", "signin", "sign-in", "auth", "register", "signup", "reset", "password")
+            )
+        ]
+        cmdi_endpoints = [
+            ep for ep in endpoints_with_params
+            if any(
+                kw in p.lower()
+                for p in ep.params
+                for kw in ("file", "path", "cmd", "exec", "command", "run", "ping", "host", "ip", "dir", "folder")
+            )
+        ]
+
+        def top_urls(items: list[Any], limit: int = 20) -> list[str]:
+            return [ep.url for ep in items[:limit]]
+
+        plan: list[dict[str, Any]] = [
+            {"module": "session_audit", "priority": 1, "params": {}},
+        ]
+
+        if auth_endpoints:
+            plan.append({
+                "module": "username_enum",
+                "priority": 2,
+                "params": {"target_urls": top_urls(auth_endpoints, 5)},
+            })
+
+        xss_targets = interesting_endpoints or endpoints_with_params
+        if xss_targets:
+            plan.append({
+                "module": "xss",
+                "priority": 3,
+                "params": {"target_urls": top_urls(xss_targets, 20)},
+            })
+            plan.append({
+                "module": "sqli",
+                "priority": 4,
+                "params": {"target_urls": top_urls(xss_targets, 20)},
+            })
+
+        if cmdi_endpoints:
+            plan.append({
+                "module": "command_injection",
+                "priority": 5,
+                "params": {"target_urls": top_urls(cmdi_endpoints, 15)},
+            })
+
+        if api_endpoints:
+            plan.append({
+                "module": "api_bola",
+                "priority": 6,
+                "params": {"target_urls": top_urls(api_endpoints, 15)},
+            })
+            plan.append({
+                "module": "rate_limit",
+                "priority": 7,
+                "params": {"target_urls": top_urls(api_endpoints, 15)},
+            })
+
+        if self.config.get("nuclei", {}).get("enabled", True):
+            plan.append({"module": "nuclei", "priority": 8, "params": {}})
+
+        return sorted(plan, key=lambda x: x.get("priority", 99))
 
     async def _run_attacks(self):
         """Execute LLM-directed attack vectors."""

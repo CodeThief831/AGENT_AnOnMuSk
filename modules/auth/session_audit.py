@@ -11,6 +11,7 @@ import hashlib
 import logging
 import math
 from collections import Counter
+from typing import Any
 
 from core.context import Evidence, Finding, Severity, VulnType
 from modules.base import BaseModule
@@ -52,6 +53,8 @@ class SessionAuditor(BaseModule):
         except Exception as e:
             logger.debug("Failed to fetch %s: %s", host, e)
             return
+
+        self._check_security_headers(host, resp.headers, evidence)
 
         # Extract Set-Cookie headers
         cookies_raw = resp.headers.get_list("set-cookie") if hasattr(
@@ -120,6 +123,43 @@ class SessionAuditor(BaseModule):
             )
             self.ctx.add_finding(finding)
             logger.warning("🍪 Insecure cookie '%s' at %s", cookie_name, host)
+
+    def _check_security_headers(self, host: str, headers: Any, evidence: Evidence):
+        """Check missing baseline security headers."""
+        header_names = {str(k).lower(): str(v) for k, v in headers.items()}
+        required = {
+            "content-security-policy": "Mitigates XSS impact by restricting script sources.",
+            "x-frame-options": "Mitigates clickjacking by preventing framing.",
+            "x-content-type-options": "Prevents MIME type sniffing attacks.",
+            "referrer-policy": "Prevents sensitive URL leakage via Referer header.",
+        }
+
+        missing = [name for name in required if name not in header_names]
+        if not missing:
+            return
+
+        finding = Finding(
+            title=f"Missing Security Headers at {host}",
+            vuln_type=VulnType.MISCONFIG,
+            severity=Severity.LOW,
+            description=(
+                "The target response is missing recommended HTTP security headers.\n"
+                + "\n".join(f"- {h}: {required[h]}" for h in missing)
+            ),
+            evidence=[Evidence(
+                request_url=host,
+                response_headers={k: v for k, v in headers.items()},
+                notes=f"Missing headers: {', '.join(missing)}",
+            )],
+            confidence=0.9,
+            target_url=host,
+            remediation=(
+                "Set the missing headers in the web server or application security middleware:\n"
+                + "\n".join(f"- {h}" for h in missing)
+            ),
+        )
+        self.ctx.add_finding(finding)
+        logger.warning("🛡️ Missing security headers at %s: %s", host, ", ".join(missing))
 
     def _check_entropy(self, host: str, cookie_str: str, evidence: Evidence):
         """Check session token entropy (should be >= 4.0 bits per char)."""

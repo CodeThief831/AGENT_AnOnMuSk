@@ -11,6 +11,7 @@ import asyncio
 import logging
 import shutil
 import sys
+from pathlib import Path
 from typing import Optional
 
 logger = logging.getLogger("anonmusk_agent.tools")
