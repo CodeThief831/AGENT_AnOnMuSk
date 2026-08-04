@@ -1,4 +1,4 @@
-﻿"""
+"""
 AGENT ANONMUSK — BOLA/IDOR Detector
 ====================================
 Identifies Broken Object-Level Authorization by testing cross-account access.
@@ -8,9 +8,8 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any
 
-from core.context import Evidence, Finding, Severity, VulnType
+from core.context import Finding, Severity, VulnType
 from modules.base import BaseModule
 from utils.http_client import HTTPClient
 
@@ -18,7 +17,10 @@ logger = logging.getLogger("AGENT ANONMUSK.injection.bola")
 
 # Patterns indicating object IDs in URLs
 ID_PATTERNS = [
-    re.compile(r"/(?:user|account|org|profile|order|invoice|document|file|report|project|team|api/v\d+/\w+)/(\d+)", re.IGNORECASE),
+    re.compile(
+        r"/(?:user|account|org|profile|order|invoice|document|file|report|project|team|api/v\d+/\w+)/(\d+)",
+        re.IGNORECASE,
+    ),
     re.compile(r"(?:user_id|account_id|org_id|id|uid|profile_id)=(\d+)", re.IGNORECASE),
     re.compile(r"/(?:user|account|org|profile)/([a-f0-9-]{36})", re.IGNORECASE),  # UUID
 ]
@@ -136,7 +138,9 @@ class BOLADetector(BaseModule):
                             self.ctx.add_finding(finding)
                             logger.warning(
                                 "🔓 BOLA/IDOR found: %s (id: %s → %s)",
-                                url, original_id, test_id,
+                                url,
+                                original_id,
+                                test_id,
                             )
                             return  # One finding per endpoint
 
@@ -154,16 +158,28 @@ class BOLADetector(BaseModule):
         # Numeric IDs: try adjacent values
         try:
             num = int(original_id)
-            test_ids.extend([
-                str(num - 1), str(num + 1), str(num - 2),
-                str(num + 2), str(num * 2), "1", "0",
-            ])
+            test_ids.extend(
+                [
+                    str(num - 1),
+                    str(num + 1),
+                    str(num - 2),
+                    str(num + 2),
+                    str(num * 2),
+                    "1",
+                    "0",
+                ]
+            )
         except ValueError:
             # UUID or string ID: try common IDs
-            test_ids.extend([
-                "1", "0", "admin", "test",
-                "00000000-0000-0000-0000-000000000000",
-                "00000000-0000-0000-0000-000000000001",
-            ])
+            test_ids.extend(
+                [
+                    "1",
+                    "0",
+                    "admin",
+                    "test",
+                    "00000000-0000-0000-0000-000000000000",
+                    "00000000-0000-0000-0000-000000000001",
+                ]
+            )
 
         return test_ids

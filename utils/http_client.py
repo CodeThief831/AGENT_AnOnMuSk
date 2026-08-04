@@ -1,4 +1,4 @@
-﻿"""
+"""
 AGENT ANONMUSK — HTTP Client
 ===========================
 Shared async HTTP client with scope checking, rate limiting,
@@ -56,7 +56,8 @@ class HTTPClient:
             max_redirects=max_redirects,
             verify=verify_ssl,
             headers={
-                "User-Agent": user_agent or (
+                "User-Agent": user_agent
+                or (
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                     "AppleWebKit/537.36 (KHTML, like Gecko) "
                     "Chrome/125.0.0.0 Safari/537.36"
@@ -125,7 +126,10 @@ class HTTPClient:
 
         logger.debug(
             "%s %s → %d (%.0fms)",
-            method, url, response.status_code, elapsed_ms,
+            method,
+            url,
+            response.status_code,
+            elapsed_ms,
         )
 
         return response, evidence

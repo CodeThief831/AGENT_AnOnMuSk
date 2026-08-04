@@ -1,4 +1,4 @@
-﻿"""
+"""
 AGENT ANONMUSK — Session Fixation Tester
 ========================================
 Tests if session identity persists across login state changes.
@@ -80,7 +80,8 @@ class SessionFixationTester(BaseModule):
             # Step 3: Check if session tokens changed
             if pre_cookies and post_cookies:
                 unchanged = {
-                    k: v for k, v in pre_cookies.items()
+                    k: v
+                    for k, v in pre_cookies.items()
                     if k in post_cookies and post_cookies[k] == v
                 }
 
@@ -94,15 +95,17 @@ class SessionFixationTester(BaseModule):
                             f"{', '.join(unchanged.keys())}. An attacker could "
                             f"fixate a session and hijack authenticated access."
                         ),
-                        evidence=[Evidence(
-                            request_method="POST",
-                            request_url=url,
-                            notes=(
-                                f"Pre-login cookies: {pre_cookies}\n"
-                                f"Post-login cookies: {post_cookies}\n"
-                                f"Unchanged: {unchanged}"
-                            ),
-                        )],
+                        evidence=[
+                            Evidence(
+                                request_method="POST",
+                                request_url=url,
+                                notes=(
+                                    f"Pre-login cookies: {pre_cookies}\n"
+                                    f"Post-login cookies: {post_cookies}\n"
+                                    f"Unchanged: {unchanged}"
+                                ),
+                            )
+                        ],
                         confidence=0.75,
                         target_url=url,
                         remediation=(
@@ -120,8 +123,14 @@ class SessionFixationTester(BaseModule):
     def _extract_session_cookies(resp) -> dict[str, str]:
         """Extract session-like cookies from response."""
         session_indicators = [
-            "session", "sid", "token", "auth", "ssid",
-            "connect.sid", "phpsessid", "jsessionid",
+            "session",
+            "sid",
+            "token",
+            "auth",
+            "ssid",
+            "connect.sid",
+            "phpsessid",
+            "jsessionid",
         ]
         cookies = {}
         for name, value in resp.cookies.items():

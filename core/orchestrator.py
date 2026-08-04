@@ -6,7 +6,6 @@ The master controller that drives the Recon → Reason → Act loop.
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from enum import Enum
 from pathlib import Path
@@ -90,9 +89,7 @@ class Orchestrator:
 
         # Task queue
         self.queue = AsyncTaskQueue(
-            max_concurrent=self.config.get("general", {}).get(
-                "max_concurrent_tasks", 10
-            )
+            max_concurrent=self.config.get("general", {}).get("max_concurrent_tasks", 10)
         )
 
         # Module references (lazy-loaded)
@@ -103,9 +100,7 @@ class Orchestrator:
         self._mimic = None
 
         # Logger
-        log_level = "DEBUG" if verbose else self.config.get(
-            "general", {}
-        ).get("log_level", "INFO")
+        log_level = "DEBUG" if verbose else self.config.get("general", {}).get("log_level", "INFO")
         log_file = str(Path(output_dir) / "anonmusk_agent.log")
         setup_logger(log_level=log_level, log_file=log_file)
 
@@ -217,6 +212,7 @@ class Orchestrator:
         # Run Full RECON if requested
         if self.full_recon:
             from modules.recon.full_recon import FullReconRunner
+
             full_recon = FullReconRunner(self.ctx, self.scope, self.config)
             await full_recon.run()
 

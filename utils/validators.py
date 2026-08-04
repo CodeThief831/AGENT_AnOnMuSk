@@ -1,4 +1,4 @@
-﻿"""
+"""
 AGENT ANONMUSK — Input Validators
 ================================
 Domain/URL validation, scope file parsing, input sanitization.
@@ -84,4 +84,4 @@ def extract_params(url: str) -> list[str]:
 
 def sanitize_filename(name: str) -> str:
     """Sanitize a string for use as a filename."""
-    return re.sub(r'[<>:"/\\|?*\x00-\x1f]', '_', name)[:200]
+    return re.sub(r'[<>:"/\\|?*\x00-\x1f]', "_", name)[:200]

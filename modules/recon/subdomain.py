@@ -36,11 +36,13 @@ class SubdomainEnumerator(BaseModule):
             "subdomain_tools", ["subfinder", "amass", "assetfinder"]
         )
         tool_paths = self.config.get("tools", {})
-        
+
         # Concurrency management
         semaphore = asyncio.Semaphore(3)
 
-        async def run_one(tool_name: str, args: list[str], timeout: int, max_lines: int) -> list[str]:
+        async def run_one(
+            tool_name: str, args: list[str], timeout: int, max_lines: int
+        ) -> list[str]:
             async with semaphore:
                 tool = ToolWrapper(tool_name, tool_paths.get(tool_name))
                 if tool.is_available:
@@ -65,7 +67,7 @@ class SubdomainEnumerator(BaseModule):
 
         # Run everything in parallel
         results = await asyncio.gather(*tasks, return_exceptions=True)
-        
+
         # Parse results
         for idx, res in enumerate(results):
             if isinstance(res, list):
@@ -74,15 +76,16 @@ class SubdomainEnumerator(BaseModule):
                 logger.error("A discovery tool failed: %s", res)
 
         # ── Deduplicate & filter by scope ────────────────
-        in_scope = sorted({
-            sub.lower().strip()
-            for sub in all_subdomains
-            if sub.strip() and self.scope.is_in_scope(sub.strip())
-        })
+        in_scope = sorted(
+            {
+                sub.lower().strip()
+                for sub in all_subdomains
+                if sub.strip() and self.scope.is_in_scope(sub.strip())
+            }
+        )
 
         self.ctx.subdomains = in_scope
         self._log_complete(
-            f"Found {len(in_scope)} unique in-scope subdomains "
-            f"(from {len(all_subdomains)} total)",
+            f"Found {len(in_scope)} unique in-scope subdomains (from {len(all_subdomains)} total)",
             data={"total_raw": len(all_subdomains), "in_scope": len(in_scope)},
         )

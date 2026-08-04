@@ -110,6 +110,25 @@ python AnonMusk_agent.py replay output/poc_scripts/sqli_abc123.py --proxy http:/
 
 ---
 
+## Docker
+
+### Build & Run
+```bash
+docker build -t anonmusk-agent .
+docker run --env-file .env anonmusk-agent scan -t example.com
+
+# With docker-compose
+docker compose run agent scan -t example.com --verbose
+```
+
+### Development
+```bash
+docker compose up -d ollama  # Optional: local LLM
+docker compose run agent recon -t example.com
+```
+
+---
+
 ## 📋 Modules
 
 ### Module A: Recon & Enumeration

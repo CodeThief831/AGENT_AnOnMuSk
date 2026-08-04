@@ -1,4 +1,4 @@
-﻿"""
+"""
 AGENT ANONMUSK — Username Enumerator
 ====================================
 Tests login/register/password-reset endpoints for verbose error differential.
@@ -6,7 +6,6 @@ Tests login/register/password-reset endpoints for verbose error differential.
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import time
 from typing import Any
@@ -19,12 +18,22 @@ logger = logging.getLogger("AGENT ANONMUSK.auth.username_enum")
 
 # ── Test usernames ───────────────────────────────────────────
 EXISTING_USER_CANDIDATES = [
-    "admin", "administrator", "root", "test", "user",
-    "info", "support", "contact", "demo", "guest",
+    "admin",
+    "administrator",
+    "root",
+    "test",
+    "user",
+    "info",
+    "support",
+    "contact",
+    "demo",
+    "guest",
 ]
 
 NONEXISTENT_USERS = [
-    "xq7z9rk2m4", "notarealuser_8392", "fakeaccount_test_zz",
+    "xq7z9rk2m4",
+    "notarealuser_8392",
+    "fakeaccount_test_zz",
 ]
 
 
@@ -63,8 +72,18 @@ class UsernameEnumerator(BaseModule):
 
     def _find_auth_endpoints(self) -> list[str]:
         """Find login/register/reset endpoints from recon data."""
-        auth_keywords = ["login", "signin", "sign-in", "auth", "register",
-                         "signup", "sign-up", "forgot", "reset", "password"]
+        auth_keywords = [
+            "login",
+            "signin",
+            "sign-in",
+            "auth",
+            "register",
+            "signup",
+            "sign-up",
+            "forgot",
+            "reset",
+            "password",
+        ]
         urls = []
         for ep in self.ctx.endpoints:
             lower_url = ep.url.lower()
@@ -96,12 +115,8 @@ class UsernameEnumerator(BaseModule):
             logger.debug("Not enough responses to analyze for %s", url)
             return
 
-        invalid_responses = {
-            k: v for k, v in responses.items() if k.startswith("invalid_")
-        }
-        candidate_responses = {
-            k: v for k, v in responses.items() if k.startswith("candidate_")
-        }
+        invalid_responses = {k: v for k, v in responses.items() if k.startswith("invalid_")}
+        candidate_responses = {k: v for k, v in responses.items() if k.startswith("candidate_")}
 
         for name, candidate in candidate_responses.items():
             username = name.replace("candidate_", "")
@@ -119,10 +134,7 @@ class UsernameEnumerator(BaseModule):
                         response_status=candidate.get("status", 0),
                         response_body=candidate.get("body", "")[:2000],
                         response_time_ms=candidate.get("time_ms", 0),
-                        notes=(
-                            f"Message diff: {msg_diff}\n"
-                            f"Timing diff: {time_diff}"
-                        ),
+                        notes=(f"Message diff: {msg_diff}\nTiming diff: {time_diff}"),
                     )
 
                     finding = Finding(
@@ -144,7 +156,8 @@ class UsernameEnumerator(BaseModule):
                     self.ctx.add_finding(finding)
                     logger.warning(
                         "🔓 Username enumeration found at %s (user: %s)",
-                        url, username,
+                        url,
+                        username,
                     )
                     return  # One finding per endpoint is enough
 
@@ -173,9 +186,7 @@ class UsernameEnumerator(BaseModule):
             return None
 
     @staticmethod
-    def _check_message_diff(
-        invalid: dict[str, Any], candidate: dict[str, Any]
-    ) -> str:
+    def _check_message_diff(invalid: dict[str, Any], candidate: dict[str, Any]) -> str:
         """Check if error messages differ (indicates enumeration)."""
         inv_body = invalid.get("body", "").lower()
         cand_body = candidate.get("body", "").lower()
@@ -191,17 +202,12 @@ class UsernameEnumerator(BaseModule):
 
         # Check status code diff
         if invalid.get("status") != candidate.get("status"):
-            return (
-                f"Status code differs: "
-                f"{invalid.get('status')} vs {candidate.get('status')}"
-            )
+            return f"Status code differs: {invalid.get('status')} vs {candidate.get('status')}"
 
         return ""
 
     @staticmethod
-    def _check_timing_diff(
-        invalid: dict[str, Any], candidate: dict[str, Any]
-    ) -> str:
+    def _check_timing_diff(invalid: dict[str, Any], candidate: dict[str, Any]) -> str:
         """Check timing differential (>200ms difference is suspicious)."""
         inv_time = invalid.get("time_ms", 0)
         cand_time = candidate.get("time_ms", 0)

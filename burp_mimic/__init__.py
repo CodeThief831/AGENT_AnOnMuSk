@@ -1,1 +1,1 @@
-﻿"""AGENT ANONMUSK Burp Suite Mimic Engine."""
+"""AGENT ANONMUSK Burp Suite Mimic Engine."""

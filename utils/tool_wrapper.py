@@ -11,6 +11,7 @@ import asyncio
 import logging
 import shutil
 import sys
+from pathlib import Path
 from typing import Optional
 
 logger = logging.getLogger("anonmusk_agent.tools")
@@ -20,6 +21,7 @@ IS_WINDOWS = sys.platform == "win32"
 
 class ToolNotFoundError(Exception):
     """Raised when a required external tool is not installed."""
+
     pass
 
 
@@ -48,7 +50,7 @@ class ToolWrapper:
             if path_found:
                 self._available = True
                 return True
-            
+
             # Check local ./tools directory (Windows)
             local_ext = ".exe" if IS_WINDOWS else ""
             local_path = Path("./tools") / f"{self.tool_path}{local_ext}"
@@ -56,7 +58,7 @@ class ToolWrapper:
                 self.tool_path = str(local_path.absolute())
                 self._available = True
                 return True
-                
+
             self._available = False
         return self._available
 
@@ -64,8 +66,7 @@ class ToolWrapper:
         """Raise if tool is not available."""
         if not self.is_available:
             raise ToolNotFoundError(
-                f"'{self.tool_name}' is not installed or not on PATH.\n"
-                f"Install it and try again."
+                f"'{self.tool_name}' is not installed or not on PATH.\nInstall it and try again."
             )
 
     async def run(
@@ -78,13 +79,11 @@ class ToolWrapper:
     ) -> str:
         """
         Run the tool asynchronously and return stdout.
-        
+
         Uses a streaming read loop to support limits and robust cancellation.
         """
         if not self.is_available:
-            logger.warning(
-                "Tool '%s' not available — returning empty result", self.tool_name
-            )
+            logger.warning("Tool '%s' not available — returning empty result", self.tool_name)
             return ""
 
         cmd = [self.tool_path] + args
@@ -106,7 +105,7 @@ class ToolWrapper:
 
             lines = []
             line_count = 0
-            
+
             # Use wait_for on the entire reading loop
             async def read_loop():
                 nonlocal line_count
@@ -117,12 +116,14 @@ class ToolWrapper:
                     lines.append(line.decode("utf-8", errors="replace").strip())
                     line_count += 1
                     if max_lines and line_count >= max_lines:
-                        logger.info("Tool '%s' reached result limit (%d)", self.tool_name, max_lines)
+                        logger.info(
+                            "Tool '%s' reached result limit (%d)", self.tool_name, max_lines
+                        )
                         break
                 return "\n".join(lines)
 
             output = await asyncio.wait_for(read_loop(), timeout=timeout)
-            
+
             # Wait for process to exit normally
             try:
                 await asyncio.wait_for(process.wait(), timeout=5)
@@ -165,12 +166,7 @@ class ToolWrapper:
         max_lines: Optional[int] = None,
     ) -> list[str]:
         """Run tool and return output as list of non-empty lines."""
-        output = await self.run(
-            args, 
-            input_data=input_data, 
-            timeout=timeout, 
-            max_lines=max_lines
-        )
+        output = await self.run(args, input_data=input_data, timeout=timeout, max_lines=max_lines)
         if not output:
             return []
         return [line.strip() for line in output.splitlines() if line.strip()]

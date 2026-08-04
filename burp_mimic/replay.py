@@ -1,4 +1,4 @@
-﻿"""
+"""
 AGENT ANONMUSK — PoC Replay Engine
 ==================================
 Re-executes generated PoC scripts to verify findings are still reproducible.

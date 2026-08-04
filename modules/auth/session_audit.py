@@ -1,4 +1,4 @@
-﻿"""
+"""
 AGENT ANONMUSK — Session Auditor
 ================================
 Verifies session cookie security: HttpOnly, Secure, SameSite flags,
@@ -7,7 +7,6 @@ token entropy, and token rotation.
 
 from __future__ import annotations
 
-import hashlib
 import logging
 import math
 from collections import Counter
@@ -54,12 +53,11 @@ class SessionAuditor(BaseModule):
             return
 
         # Extract Set-Cookie headers
-        cookies_raw = resp.headers.get_list("set-cookie") if hasattr(
-            resp.headers, "get_list"
-        ) else [
-            v for k, v in resp.headers.multi_items()
-            if k.lower() == "set-cookie"
-        ]
+        cookies_raw = (
+            resp.headers.get_list("set-cookie")
+            if hasattr(resp.headers, "get_list")
+            else [v for k, v in resp.headers.multi_items() if k.lower() == "set-cookie"]
+        )
 
         if not cookies_raw:
             logger.debug("No cookies set by %s", host)
@@ -76,8 +74,15 @@ class SessionAuditor(BaseModule):
 
         # Skip non-session cookies (tracking, analytics)
         session_indicators = [
-            "session", "sid", "token", "auth", "jwt",
-            "ssid", "connect.sid", "phpsessid", "jsessionid",
+            "session",
+            "sid",
+            "token",
+            "auth",
+            "jwt",
+            "ssid",
+            "connect.sid",
+            "phpsessid",
+            "jsessionid",
         ]
         is_session = any(ind in cookie_name.lower() for ind in session_indicators)
 
@@ -106,11 +111,13 @@ class SessionAuditor(BaseModule):
                     f"The session cookie '{cookie_name}' is missing security flags:\n"
                     + "\n".join(f"- {issue}" for issue in issues)
                 ),
-                evidence=[Evidence(
-                    request_url=host,
-                    response_headers={"Set-Cookie": cookie_str},
-                    notes="\n".join(issues),
-                )],
+                evidence=[
+                    Evidence(
+                        request_url=host,
+                        response_headers={"Set-Cookie": cookie_str},
+                        notes="\n".join(issues),
+                    )
+                ],
                 confidence=0.95,
                 target_url=host,
                 remediation=(
@@ -145,11 +152,13 @@ class SessionAuditor(BaseModule):
                     f"({entropy:.2f} bits/char). Tokens should have >= 4.0 "
                     f"bits/char to resist brute-force prediction."
                 ),
-                evidence=[Evidence(
-                    request_url=host,
-                    response_headers={"Set-Cookie": cookie_str[:200]},
-                    notes=f"Entropy: {entropy:.2f} bits/char, Length: {len(value)}",
-                )],
+                evidence=[
+                    Evidence(
+                        request_url=host,
+                        response_headers={"Set-Cookie": cookie_str[:200]},
+                        notes=f"Entropy: {entropy:.2f} bits/char, Length: {len(value)}",
+                    )
+                ],
                 confidence=0.8,
                 target_url=host,
                 remediation=(

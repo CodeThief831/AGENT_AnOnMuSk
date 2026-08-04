@@ -1,4 +1,4 @@
-﻿"""
+"""
 AGENT ANONMUSK — Rate Limit Tester
 ==================================
 "Turbo Intruder" style rate escalation to find API rate-limit breaking points.
@@ -36,11 +36,22 @@ class RateLimitTester(BaseModule):
         if not target_urls:
             # Find API endpoints likely to have rate limits
             target_urls = [
-                ep.url for ep in self.ctx.endpoints
-                if any(kw in ep.url.lower() for kw in [
-                    "login", "auth", "reset", "api/", "register",
-                    "password", "verify", "otp", "token",
-                ])
+                ep.url
+                for ep in self.ctx.endpoints
+                if any(
+                    kw in ep.url.lower()
+                    for kw in [
+                        "login",
+                        "auth",
+                        "reset",
+                        "api/",
+                        "register",
+                        "password",
+                        "verify",
+                        "otp",
+                        "token",
+                    ]
+                )
             ]
 
         if not target_urls:
@@ -83,21 +94,25 @@ class RateLimitTester(BaseModule):
                             f"This is informational — rate limiting IS working.\n"
                             f"Burst sizes tested: {burst_sizes}"
                         ),
-                        evidence=[Evidence(
-                            request_url=url,
-                            notes=(
-                                f"Threshold: {result['threshold']} requests\n"
-                                f"Rate: {result['rps']:.1f} req/s\n"
-                                f"Status codes: {result['status_codes']}"
-                            ),
-                        )],
+                        evidence=[
+                            Evidence(
+                                request_url=url,
+                                notes=(
+                                    f"Threshold: {result['threshold']} requests\n"
+                                    f"Rate: {result['rps']:.1f} req/s\n"
+                                    f"Status codes: {result['status_codes']}"
+                                ),
+                            )
+                        ],
                         confidence=0.9,
                         target_url=url,
                     )
                     self.ctx.add_finding(finding)
                     logger.info(
                         "📊 Rate limit threshold: %d req at %.1f/s for %s",
-                        result["threshold"], result["rps"], url,
+                        result["threshold"],
+                        result["rps"],
+                        url,
                     )
                     return
 
@@ -113,10 +128,12 @@ class RateLimitTester(BaseModule):
                     f"- Credential stuffing\n"
                     f"- Resource exhaustion (DoS)"
                 ),
-                evidence=[Evidence(
-                    request_url=url,
-                    notes=f"All {max(burst_sizes)} requests returned 200 OK",
-                )],
+                evidence=[
+                    Evidence(
+                        request_url=url,
+                        notes=f"All {max(burst_sizes)} requests returned 200 OK",
+                    )
+                ],
                 confidence=0.8,
                 target_url=url,
                 remediation=(
@@ -166,10 +183,7 @@ class RateLimitTester(BaseModule):
             "threshold": threshold,
             "rps": rps,
             "elapsed": elapsed,
-            "status_codes": dict(
-                (code, status_codes.count(code))
-                for code in set(status_codes)
-            ),
+            "status_codes": dict((code, status_codes.count(code)) for code in set(status_codes)),
         }
 
     async def _single_request(self, client: HTTPClient, url: str) -> int:

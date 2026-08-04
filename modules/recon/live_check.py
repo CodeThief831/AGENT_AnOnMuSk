@@ -1,4 +1,4 @@
-﻿"""
+"""
 AGENT ANONMUSK — Live Host Checker
 ==================================
 Filters subdomains to only live HTTP/HTTPS hosts.

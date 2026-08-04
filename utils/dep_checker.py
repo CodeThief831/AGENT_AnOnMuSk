@@ -21,7 +21,10 @@ console = Console()
 
 TOOLS = {
     # (tool_name, install_hint, required)
-    "subfinder": ("go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest", False),
+    "subfinder": (
+        "go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest",
+        False,
+    ),
     "amass": ("go install -v github.com/owasp-amass/amass/v4/...@master", False),
     "assetfinder": ("go install -v github.com/tomnomnom/assetfinder@latest", False),
     "httpx": ("go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest", False),
@@ -38,10 +41,11 @@ def check_tool(name: str) -> bool:
     """Check if a tool is available on PATH or local ./tools directory."""
     if shutil.which(name):
         return True
-    
+
     # Check local tools directory (Windows)
     import sys
     from pathlib import Path
+
     ext = ".exe" if sys.platform == "win32" else ""
     local_path = Path("./tools") / f"{name}{ext}"
     return local_path.exists()
@@ -84,19 +88,13 @@ def check_all_dependencies(verbose: bool = True) -> dict[str, bool]:
         console.print(table)
 
         missing_required = [
-            name for name, (_, req) in TOOLS.items()
-            if req and not results.get(name, False)
+            name for name, (_, req) in TOOLS.items() if req and not results.get(name, False)
         ]
         if missing_required:
-            console.print(
-                f"\n[bold red]⚠ Required tools missing:[/] "
-                f"{', '.join(missing_required)}"
-            )
+            console.print(f"\n[bold red]⚠ Required tools missing:[/] {', '.join(missing_required)}")
 
         available_count = sum(1 for v in results.values() if v)
-        console.print(
-            f"\n[dim]{available_count}/{len(TOOLS)} tools available[/]"
-        )
+        console.print(f"\n[dim]{available_count}/{len(TOOLS)} tools available[/]")
 
     return results
 

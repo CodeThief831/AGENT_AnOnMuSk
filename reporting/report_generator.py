@@ -1,4 +1,4 @@
-﻿"""
+"""
 AGENT ANONMUSK — Report Generator
 ==================================
 Generates Markdown and JSON reports from scan findings.
@@ -10,10 +10,9 @@ import json
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
 from core.context import ScanContext, Finding
-from reporting.cvss import CVSSCalculator, severity_from_score
+from reporting.cvss import CVSSCalculator
 from reporting.remediation import get_remediation
 
 logger = logging.getLogger("AGENT ANONMUSK.reporting")
@@ -124,10 +123,10 @@ class ReportGenerator:
         low = sum(1 for f in findings if f.severity.value == "low")
         info = sum(1 for f in findings if f.severity.value == "info")
 
-        risk_level = "CRITICAL" if critical > 0 else (
-            "HIGH" if high > 0 else (
-                "MEDIUM" if medium > 0 else "LOW"
-            )
+        risk_level = (
+            "CRITICAL"
+            if critical > 0
+            else ("HIGH" if high > 0 else ("MEDIUM" if medium > 0 else "LOW"))
         )
 
         return f"""## 📋 Executive Summary
@@ -192,7 +191,7 @@ of `{ctx.target}`, discovering **{len(findings)} findings** across
 | **CVSS Vector** | `{f.cvss_vector}` |
 | **Type** | {f.vuln_type.value} |
 | **URL** | `{f.target_url}` |
-| **Parameter** | `{f.parameter or '—'}` |
+| **Parameter** | `{f.parameter or "—"}` |
 | **Confidence** | {f.confidence * 100:.0f}% |
 
 **Description:**
@@ -219,7 +218,7 @@ of `{ctx.target}`, discovering **{len(findings)} findings** across
             # Remediation
             section += f"""
 **Remediation:**
-{remediation.get('summary', f.remediation or 'See OWASP guidelines.')}
+{remediation.get("summary", f.remediation or "See OWASP guidelines.")}
 
 ---
 """
@@ -233,11 +232,11 @@ of `{ctx.target}`, discovering **{len(findings)} findings** across
 
 | Component | Value |
 |-----------|-------|
-| **Server** | {tech.server or 'Unknown'} |
-| **Framework** | {tech.framework or 'Unknown'} |
-| **Language** | {tech.language or 'Unknown'} |
-| **WAF** | {tech.waf or 'None detected'} |
-| **Cookies** | {', '.join(tech.cookies[:5]) or 'None'} |"""
+| **Server** | {tech.server or "Unknown"} |
+| **Framework** | {tech.framework or "Unknown"} |
+| **Language** | {tech.language or "Unknown"} |
+| **WAF** | {tech.waf or "None detected"} |
+| **Cookies** | {", ".join(tech.cookies[:5]) or "None"} |"""
 
     def _methodology(self, ctx: ScanContext) -> str:
         return """## 📖 Methodology
@@ -262,11 +261,9 @@ Tools utilized: subfinder, amass, httpx, nuclei, custom engines."""
             sections.append("| Type | Source |")
             sections.append("|------|--------|")
             for secret in ctx.js_secrets[:10]:
-                sections.append(
-                    f"| {secret['type']} | `{secret['source'][:60]}` |"
-                )
+                sections.append(f"| {secret['type']} | `{secret['source'][:60]}` |")
 
-        sections.append(f"\n### Scan Timeline\n")
+        sections.append("\n### Scan Timeline\n")
         sections.append(f"Total events recorded: **{len(ctx.events)}**\n")
 
         return "\n".join(sections)

@@ -1,4 +1,4 @@
-﻿"""
+"""
 AGENT ANONMUSK — Burp Suite Mimic Script Generator
 ===================================================
 Generates standalone Python PoC scripts that mimic Burp Suite Repeater requests.
@@ -10,7 +10,6 @@ import json
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
 from jinja2 import Environment, BaseLoader
 
@@ -290,19 +289,14 @@ class BurpMimicGenerator:
         )
 
         # Save
-        safe_name = (
-            finding.vuln_type.value + "_" +
-            finding.id + ".py"
-        )
+        safe_name = finding.vuln_type.value + "_" + finding.id + ".py"
         filepath = self.output_dir / safe_name
         filepath.write_text(script, encoding="utf-8")
 
         logger.info("Generated PoC: %s", filepath)
         return str(filepath)
 
-    def generate_intruder(
-        self, finding: Finding, payloads: list[str]
-    ) -> str:
+    def generate_intruder(self, finding: Finding, payloads: list[str]) -> str:
         """Generate an Intruder-style fuzzing script."""
         if not finding.evidence:
             return ""

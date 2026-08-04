@@ -1,4 +1,4 @@
-﻿"""Tests for burp_mimic.generator module."""
+"""Tests for burp_mimic.generator module."""
 
 import tempfile
 from pathlib import Path
@@ -23,13 +23,15 @@ class TestBurpMimicGenerator:
                 target_url="https://example.com/api/users?id=1",
                 parameter="id",
                 payload="' OR 1=1--",
-                evidence=[Evidence(
-                    request_method="GET",
-                    request_url="https://example.com/api/users?id=' OR 1=1--",
-                    request_headers={"User-Agent": "Test"},
-                    response_status=200,
-                    response_body="admin data leaked",
-                )],
+                evidence=[
+                    Evidence(
+                        request_method="GET",
+                        request_url="https://example.com/api/users?id=' OR 1=1--",
+                        request_headers={"User-Agent": "Test"},
+                        response_status=200,
+                        response_body="admin data leaked",
+                    )
+                ],
             )
 
             script_path = gen.generate(finding)
@@ -65,12 +67,14 @@ class TestBurpMimicGenerator:
                 title="XSS PoC",
                 vuln_type=VulnType.XSS,
                 severity=Severity.MEDIUM,
-                payload='<script>alert(1)</script>',
-                evidence=[Evidence(
-                    request_method="GET",
-                    request_url="https://example.com/?q=test",
-                    response_status=200,
-                )],
+                payload="<script>alert(1)</script>",
+                evidence=[
+                    Evidence(
+                        request_method="GET",
+                        request_url="https://example.com/?q=test",
+                        response_status=200,
+                    )
+                ],
             )
 
             script_path = gen.generate(finding)

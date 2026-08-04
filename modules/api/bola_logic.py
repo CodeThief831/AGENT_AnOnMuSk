@@ -1,4 +1,4 @@
-﻿"""
+"""
 AGENT ANONMUSK — API BOLA Logic
 ================================
 Maps API object IDs and tests unauthorized enumeration.
@@ -10,7 +10,7 @@ import json
 import logging
 import re
 
-from core.context import Evidence, Finding, Severity, VulnType
+from core.context import Finding, Severity, VulnType
 from modules.base import BaseModule
 from utils.http_client import HTTPClient
 
@@ -36,9 +36,9 @@ class APIBOLALogic(BaseModule):
         if not target_urls:
             # Find API endpoints
             target_urls = [
-                ep.url for ep in self.ctx.endpoints
-                if "/api/" in ep.url.lower() or "/v1/" in ep.url.lower()
-                or "/v2/" in ep.url.lower()
+                ep.url
+                for ep in self.ctx.endpoints
+                if "/api/" in ep.url.lower() or "/v1/" in ep.url.lower() or "/v2/" in ep.url.lower()
             ]
 
         if not target_urls:
@@ -60,9 +60,7 @@ class APIBOLALogic(BaseModule):
 
         self._log_complete("API BOLA testing complete")
 
-    async def _map_object_ids(
-        self, client: HTTPClient, urls: list[str]
-    ) -> dict[str, list[str]]:
+    async def _map_object_ids(self, client: HTTPClient, urls: list[str]) -> dict[str, list[str]]:
         """Extract object IDs from API responses."""
         id_map: dict[str, list[str]] = {}
 
@@ -87,16 +85,23 @@ class APIBOLALogic(BaseModule):
 
         return id_map
 
-    def _extract_ids_from_json(
-        self, data, depth: int = 0, max_depth: int = 5
-    ) -> list[str]:
+    def _extract_ids_from_json(self, data, depth: int = 0, max_depth: int = 5) -> list[str]:
         """Recursively extract potential object IDs from JSON data."""
         if depth > max_depth:
             return []
 
         ids = []
-        id_keys = ["id", "user_id", "account_id", "org_id", "project_id",
-                    "team_id", "document_id", "order_id", "invoice_id"]
+        id_keys = [
+            "id",
+            "user_id",
+            "account_id",
+            "org_id",
+            "project_id",
+            "team_id",
+            "document_id",
+            "order_id",
+            "invoice_id",
+        ]
 
         if isinstance(data, dict):
             for key, value in data.items():
@@ -111,15 +116,13 @@ class APIBOLALogic(BaseModule):
 
         return list(set(ids))
 
-    async def _test_cross_access(
-        self, client: HTTPClient, base_url: str, ids: list[str]
-    ):
+    async def _test_cross_access(self, client: HTTPClient, base_url: str, ids: list[str]):
         """Test if objects can be accessed with different IDs."""
         if len(ids) < 2:
             return
 
         # Try to access the URL with each alternative ID
-        id_pattern = re.compile(r'/(\d+)(?:/|$|\?)')
+        id_pattern = re.compile(r"/(\d+)(?:/|$|\?)")
         match = id_pattern.search(base_url)
 
         if not match:

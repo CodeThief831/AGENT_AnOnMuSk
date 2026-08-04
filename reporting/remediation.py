@@ -1,4 +1,4 @@
-﻿"""
+"""
 AGENT ANONMUSK — Remediation Database
 =====================================
 Context-aware remediation advice for each vulnerability type.
@@ -9,7 +9,6 @@ from __future__ import annotations
 from core.context import VulnType
 
 REMEDIATION_DB: dict[VulnType, dict[str, str]] = {
-
     VulnType.SQLI: {
         "title": "SQL Injection Remediation",
         "summary": "Use parameterized queries to prevent SQL injection.",
@@ -36,7 +35,7 @@ result = db.execute(query, {"id": user_id})
 // ❌ Vulnerable
 db.raw(`SELECT * FROM users WHERE id = ${userId}`)
 
-// ✅ Secure  
+// ✅ Secure
 db('users').where('id', userId)
 ```
 
@@ -46,7 +45,6 @@ db('users').where('id', userId)
 - Use **WAF rules** as defense-in-depth (not primary defense)
 """,
     },
-
     VulnType.XSS: {
         "title": "Cross-Site Scripting (XSS) Remediation",
         "summary": "Implement context-aware output encoding.",
@@ -67,7 +65,6 @@ Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'
 - Implement **Trusted Types** for DOM manipulation
 """,
     },
-
     VulnType.CMDI: {
         "title": "OS Command Injection Remediation",
         "summary": "Never pass user input to shell commands.",
@@ -95,7 +92,6 @@ subprocess.run(["ping", "-c", "1", validated_host], shell=False)
 - Implement **input validation** (alphanumeric only for hostnames)
 """,
     },
-
     VulnType.BOLA: {
         "title": "BOLA/IDOR Remediation",
         "summary": "Implement object-level authorization checks.",
@@ -127,7 +123,6 @@ def get_order(order_id: int, current_user: User):
 - Log and alert on **access pattern anomalies**
 """,
     },
-
     VulnType.SESSION_FIXATION: {
         "title": "Session Fixation Remediation",
         "summary": "Regenerate session IDs on authentication state changes.",
@@ -148,7 +143,6 @@ def login():
 ```
 """,
     },
-
     VulnType.MISCONFIG: {
         "title": "Security Misconfiguration Remediation",
         "summary": "Review and harden server and application configuration.",
@@ -168,7 +162,6 @@ Permissions-Policy: camera=(), microphone=(), geolocation=()
 ```
 """,
     },
-
     VulnType.RATE_LIMIT: {
         "title": "Rate Limiting Remediation",
         "summary": "Implement progressive rate limiting on sensitive endpoints.",
@@ -189,8 +182,11 @@ Permissions-Policy: camera=(), microphone=(), geolocation=()
 
 def get_remediation(vuln_type: VulnType) -> dict[str, str]:
     """Get remediation advice for a vulnerability type."""
-    return REMEDIATION_DB.get(vuln_type, {
-        "title": "General Security Remediation",
-        "summary": "Review and fix the identified vulnerability.",
-        "details": "Consult OWASP guidelines for remediation advice.",
-    })
+    return REMEDIATION_DB.get(
+        vuln_type,
+        {
+            "title": "General Security Remediation",
+            "summary": "Review and fix the identified vulnerability.",
+            "details": "Consult OWASP guidelines for remediation advice.",
+        },
+    )

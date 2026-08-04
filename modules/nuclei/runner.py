@@ -1,4 +1,4 @@
-﻿"""
+"""
 AGENT ANONMUSK — Nuclei Runner
 ===============================
 Wraps the Nuclei CLI scanner with JSON output parsing.
@@ -67,9 +67,11 @@ class NucleiRunner(BaseModule):
 
         # Build command args
         args = [
-            "-l", str(target_file),
+            "-l",
+            str(target_file),
             "-jsonl",
-            "-o", str(result_file),
+            "-o",
+            str(result_file),
             "-silent",
         ]
 

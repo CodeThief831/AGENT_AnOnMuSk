@@ -1,4 +1,4 @@
-﻿"""
+"""
 AGENT ANONMUSK — Reasoning Engine
 =================================
 The "Brain" — analyzes scan data and decides attack vectors using LLM reasoning.
@@ -120,17 +120,19 @@ Rules:
         attack_plan.sort(key=lambda x: x.get("priority", 99))
 
         # Log decisions
-        ctx.llm_decisions.append({
-            "type": "attack_plan",
-            "input_summary": {
-                "subdomains": len(ctx.subdomains),
-                "live_hosts": len(ctx.live_hosts),
-                "endpoints": len(ctx.endpoints),
-                "tech_stack": ctx.tech_stack.model_dump(),
-            },
-            "output": attack_plan,
-            "model": self.client.model,
-        })
+        ctx.llm_decisions.append(
+            {
+                "type": "attack_plan",
+                "input_summary": {
+                    "subdomains": len(ctx.subdomains),
+                    "live_hosts": len(ctx.live_hosts),
+                    "endpoints": len(ctx.endpoints),
+                    "tech_stack": ctx.tech_stack.model_dump(),
+                },
+                "output": attack_plan,
+                "model": self.client.model,
+            }
+        )
 
         logger.info("LLM proposed %d attack vectors", len(attack_plan))
         return attack_plan
@@ -236,12 +238,12 @@ Rules:
         for host in ctx.live_hosts[:15]:
             parts.append(f"- {host}")
 
-        parts.append(f"\n## Interesting Endpoints")
+        parts.append("\n## Interesting Endpoints")
         interesting = [e for e in ctx.endpoints if e.interesting]
         for ep in interesting[:30]:
             parts.append(f"- {ep.url} (params: {', '.join(ep.params)})")
 
-        parts.append(f"\n## Technology Stack")
+        parts.append("\n## Technology Stack")
         tech = ctx.tech_stack
         parts.append(f"- Server: {tech.server or 'Unknown'}")
         parts.append(f"- Framework: {tech.framework or 'Unknown'}")

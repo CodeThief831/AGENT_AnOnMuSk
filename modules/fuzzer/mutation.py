@@ -1,4 +1,4 @@
-﻿"""
+"""
 AGENT ANONMUSK — Mutation Fuzzer
 ================================
 GPTFuzzer-inspired mutation engine for payload generation.
@@ -9,7 +9,6 @@ from __future__ import annotations
 import logging
 import math
 import random
-from typing import Any, Optional
 
 logger = logging.getLogger("AGENT ANONMUSK.fuzzer.mutation")
 
@@ -81,9 +80,7 @@ class MutationFuzzer:
 
         for seed in self.seeds:
             exploitation = seed.success_rate
-            exploration = math.sqrt(
-                2 * math.log(self._total_attempts) / seed.attempts
-            )
+            exploration = math.sqrt(2 * math.log(self._total_attempts) / seed.attempts)
             score = exploitation + exploration
 
             if score > best_score:
@@ -184,10 +181,7 @@ class MutationFuzzer:
     @staticmethod
     def _rephrase_case(payload: str) -> str:
         """Randomize case (WAF evasion)."""
-        return "".join(
-            c.upper() if random.random() > 0.5 else c.lower()
-            for c in payload
-        )
+        return "".join(c.upper() if random.random() > 0.5 else c.lower() for c in payload)
 
     @staticmethod
     def _encode_hex(payload: str) -> str:

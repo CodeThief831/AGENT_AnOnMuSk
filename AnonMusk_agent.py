@@ -42,88 +42,62 @@ Examples:
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # ── scan ─────────────────────────────────────────────
-    scan_parser = subparsers.add_parser(
-        "scan", help="Run a full autonomous scan"
-    )
+    scan_parser = subparsers.add_parser("scan", help="Run a full autonomous scan")
+    scan_parser.add_argument("-t", "--target", required=True, help="Target domain")
+    scan_parser.add_argument("--scope", help="Path to scope file (default: auto-scope to target)")
+    scan_parser.add_argument("--config", default="config.yaml", help="Config file path")
+    scan_parser.add_argument("-o", "--output", default="./output", help="Output directory")
     scan_parser.add_argument(
-        "-t", "--target", required=True, help="Target domain"
-    )
-    scan_parser.add_argument(
-        "--scope", help="Path to scope file (default: auto-scope to target)"
-    )
-    scan_parser.add_argument(
-        "--config", default="config.yaml", help="Config file path"
-    )
-    scan_parser.add_argument(
-        "-o", "--output", default="./output", help="Output directory"
-    )
-    scan_parser.add_argument(
-        "--llm-provider", default=os.getenv("LLM_PROVIDER", "openai"),
+        "--llm-provider",
+        default=os.getenv("LLM_PROVIDER", "openai"),
         choices=["openai", "anthropic"],
         help="LLM provider",
     )
     scan_parser.add_argument(
-        "--llm-model", default=os.getenv("LLM_MODEL", "gpt-4o"),
+        "--llm-model",
+        default=os.getenv("LLM_MODEL", "gpt-4o"),
         help="LLM model name",
     )
     scan_parser.add_argument(
-        "--api-key", default="",
+        "--api-key",
+        default="",
         help="LLM API key (or set via OPENAI_API_KEY / ANTHROPIC_API_KEY env)",
     )
-    scan_parser.add_argument(
-        "-v", "--verbose", action="store_true", help="Verbose output"
-    )
+    scan_parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
 
     # ── recon ────────────────────────────────────────────
-    recon_parser = subparsers.add_parser(
-        "recon", help="Run reconnaissance only"
-    )
-    recon_parser.add_argument(
-        "-t", "--target", required=True, help="Target domain"
-    )
-    recon_parser.add_argument(
-        "--scope", help="Path to scope file"
-    )
-    recon_parser.add_argument(
-        "-o", "--output", default="./output", help="Output directory"
-    )
+    recon_parser = subparsers.add_parser("recon", help="Run reconnaissance only")
+    recon_parser.add_argument("-t", "--target", required=True, help="Target domain")
+    recon_parser.add_argument("--scope", help="Path to scope file")
+    recon_parser.add_argument("-o", "--output", default="./output", help="Output directory")
     recon_parser.add_argument(
         "--full", action="store_true", help="Run full-fledged reconnaissance (mimics ReconFTW)"
     )
-    recon_parser.add_argument(
-        "-v", "--verbose", action="store_true", help="Verbose output"
-    )
+    recon_parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
 
     # ── deps ─────────────────────────────────────────────
-    deps_parser = subparsers.add_parser(
-        "deps", help="Check or install external tool dependencies"
-    )
+    deps_parser = subparsers.add_parser("deps", help="Check or install external tool dependencies")
     deps_parser.add_argument(
-        "action", nargs="?", choices=["check", "install"], default="check",
-        help="Action to perform (default: check)"
+        "action",
+        nargs="?",
+        choices=["check", "install"],
+        default="check",
+        help="Action to perform (default: check)",
     )
 
     # ── replay ───────────────────────────────────────────
-    replay_parser = subparsers.add_parser(
-        "replay", help="Replay a PoC script"
-    )
+    replay_parser = subparsers.add_parser("replay", help="Replay a PoC script")
+    replay_parser.add_argument("script", help="Path to PoC script")
     replay_parser.add_argument(
-        "script", help="Path to PoC script"
-    )
-    replay_parser.add_argument(
-        "--proxy", "-p", help="Proxy URL (e.g., http://127.0.0.1:8080)",
+        "--proxy",
+        "-p",
+        help="Proxy URL (e.g., http://127.0.0.1:8080)",
     )
 
     # ── report ───────────────────────────────────────────
-    report_parser = subparsers.add_parser(
-        "report", help="Generate report from saved scan data"
-    )
-    report_parser.add_argument(
-        "scan_file", help="Path to scan JSON file"
-    )
-    report_parser.add_argument(
-        "-o", "--output", default="./output", help="Output directory"
-    )
+    report_parser = subparsers.add_parser("report", help="Generate report from saved scan data")
+    report_parser.add_argument("scan_file", help="Path to scan JSON file")
+    report_parser.add_argument("-o", "--output", default="./output", help="Output directory")
 
     # Parse args
     args = parser.parse_args()
@@ -180,6 +154,7 @@ def _run_recon(args):
         print_banner()
 
         from core.orchestrator import ScanState
+
         orch._transition(ScanState.RECON, "Starting reconnaissance...")
         await orch._run_recon()
 
@@ -193,9 +168,10 @@ def _run_recon(args):
 def _run_deps(args):
     """Check or install external tool dependencies."""
     from utils.dep_checker import check_all_dependencies
-    
+
     if args.action == "install":
         from utils.install_tools import install_all_tools
+
         install_all_tools()
         # Re-check after install
         print("\n[bold cyan]Verifying installation...[/]")

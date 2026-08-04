@@ -44,15 +44,23 @@ class EndpointEnumerator(BaseModule):
         endpoint_tools = self.config.get("recon", {}).get(
             "endpoint_tools", ["waybackurls", "gau", "katana"]
         )
-        
+
         # Concurrency management
         semaphore = asyncio.Semaphore(3)
 
-        async def run_one(tool_name: str, args: list[str], input_data: str = None, timeout: int = 600, max_lines: int = None) -> list[str]:
+        async def run_one(
+            tool_name: str,
+            args: list[str],
+            input_data: str = None,
+            timeout: int = 600,
+            max_lines: int = None,
+        ) -> list[str]:
             async with semaphore:
                 tool = ToolWrapper(tool_name, tool_paths.get(tool_name))
                 if tool.is_available:
-                    logger.info("Running %s on %s", tool_name, target if not input_data else "live hosts")
+                    logger.info(
+                        "Running %s on %s", tool_name, target if not input_data else "live hosts"
+                    )
                     return await tool.run_lines(
                         args,
                         input_data=input_data,
@@ -67,7 +75,7 @@ class EndpointEnumerator(BaseModule):
             hist_tasks.append(run_one("waybackurls", [], input_data=target, max_lines=10000))
         if "gau" in endpoint_tools:
             hist_tasks.append(run_one("gau", [target, "--subs"], max_lines=10000))
-            
+
         hist_results = await asyncio.gather(*hist_tasks, return_exceptions=True)
         for res in hist_results:
             if isinstance(res, list):
@@ -79,7 +87,7 @@ class EndpointEnumerator(BaseModule):
             katana_tasks = []
             for host in self.ctx.live_hosts[:5]:  # top 5 hosts
                 katana_tasks.append(run_one("katana", ["-u", host, "-silent", "-d", "3"]))
-            
+
             katana_results = await asyncio.gather(*katana_tasks, return_exceptions=True)
             for res in katana_results:
                 if isinstance(res, list):
@@ -103,17 +111,17 @@ class EndpointEnumerator(BaseModule):
             params = list(parse_qs(parsed.query).keys())
 
             # Check if any param is interesting
-            interesting = any(
-                INTERESTING_PARAMS.search(p) for p in params
-            )
+            interesting = any(INTERESTING_PARAMS.search(p) for p in params)
 
-            endpoints.append(Endpoint(
-                url=url,
-                method="GET",
-                params=params,
-                source="endpoint_enum",
-                interesting=interesting,
-            ))
+            endpoints.append(
+                Endpoint(
+                    url=url,
+                    method="GET",
+                    params=params,
+                    source="endpoint_enum",
+                    interesting=interesting,
+                )
+            )
 
         # Sort: interesting endpoints first
         endpoints.sort(key=lambda e: (not e.interesting, e.url))

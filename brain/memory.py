@@ -1,4 +1,4 @@
-﻿"""
+"""
 AGENT ANONMUSK — Memory System
 ==============================
 Short-term (working memory) and long-term (SQLite) storage
@@ -136,8 +136,16 @@ class Memory:
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 f"{scan_id}_{vuln_type}_{hash(title) % 10000}",
-                scan_id, target, vuln_type, severity, title, payload,
-                tech_stack, waf, int(success), context,
+                scan_id,
+                target,
+                vuln_type,
+                severity,
+                title,
+                payload,
+                tech_stack,
+                waf,
+                int(success),
+                context,
                 datetime.now(timezone.utc).isoformat(),
             ),
         )
@@ -174,7 +182,9 @@ class Memory:
                    success_count, fail_count, last_used, metadata)
                    VALUES (?, ?, ?, ?, ?, ?, ?)""",
                 (
-                    pattern_type, key, value,
+                    pattern_type,
+                    key,
+                    value,
                     1 if success else 0,
                     0 if success else 1,
                     datetime.now(timezone.utc).isoformat(),
@@ -200,8 +210,12 @@ class Memory:
 
         return [
             {
-                "vuln_type": r[0], "severity": r[1], "title": r[2],
-                "payload": r[3], "tech_stack": r[4], "waf": r[5],
+                "vuln_type": r[0],
+                "severity": r[1],
+                "title": r[2],
+                "payload": r[3],
+                "tech_stack": r[4],
+                "waf": r[5],
                 "success": bool(r[6]),
             }
             for r in rows
@@ -224,8 +238,10 @@ class Memory:
 
         return [
             {
-                "key": r[0], "value": r[1],
-                "success": r[2], "fail": r[3],
+                "key": r[0],
+                "value": r[1],
+                "success": r[2],
+                "fail": r[3],
                 "rate": r[2] / (r[2] + r[3]) if (r[2] + r[3]) > 0 else 0,
             }
             for r in rows

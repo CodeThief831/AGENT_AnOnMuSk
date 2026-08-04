@@ -7,16 +7,15 @@ enhanced native multi-tool sequence.
 
 import asyncio
 import logging
-import subprocess
 import shutil
 from pathlib import Path
-from typing import Optional
 
 from modules.base import BaseModule
 from core.context import ScanContext
 from core.scope import ScopeValidator
 
 logger = logging.getLogger("anonmusk_agent.recon.full")
+
 
 class FullReconRunner(BaseModule):
     """
@@ -27,7 +26,13 @@ class FullReconRunner(BaseModule):
     def __init__(self, ctx: ScanContext, scope: ScopeValidator, config: dict):
         super().__init__(ctx, scope, config)
         # Sanitize target for Windows directory compatibility
-        safe_target = ctx.target.replace("https://", "").replace("http://", "").replace("/", "_").replace(":", "_").strip("_")
+        safe_target = (
+            ctx.target.replace("https://", "")
+            .replace("http://", "")
+            .replace("/", "_")
+            .replace(":", "_")
+            .strip("_")
+        )
         self.recon_dir = Path("output") / safe_target / "recon"
         self.recon_dir.mkdir(parents=True, exist_ok=True)
 
@@ -59,17 +64,17 @@ class FullReconRunner(BaseModule):
                 return False
 
             logger.info("ReconFTW detected in WSL! Running full scan...")
-            
+
             # Run reconftw
             # -d: domain, -r: recon, -v: verbose
             run_cmd = ["wsl", "bash", "-c", f"reconftw.sh -d {self.ctx.target} -r"]
             proc = await asyncio.create_subprocess_exec(
                 *run_cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
             )
-            
+
             # We don't wait for completion here if it's too long, but for 'recon' command we should
             stdout, stderr = await proc.communicate()
-            
+
             if proc.returncode == 0:
                 logger.info("ReconFTW scan complete via WSL.")
                 # Logic to parse ReconFTW results would go here
@@ -93,14 +98,12 @@ class FullReconRunner(BaseModule):
         subfinder_task = self._run_tool(
             "subfinder",
             ["-d", self.ctx.target, "-all", "-recursive", "-silent"],
-            self._parse_subdomains
+            self._parse_subdomains,
         )
         amass_task = self._run_tool(
-            "amass",
-            ["enum", "-passive", "-d", self.ctx.target],
-            self._parse_subdomains
+            "amass", ["enum", "-passive", "-d", self.ctx.target], self._parse_subdomains
         )
-        
+
         await asyncio.gather(subfinder_task, amass_task, return_exceptions=True)
 
         # 3. Active Probing with httpx (screenshots, tech, status)
@@ -108,21 +111,19 @@ class FullReconRunner(BaseModule):
             # Save subdomains to a temp file
             temp_file = Path("temp_subs.txt")
             temp_file.write_text("\n".join(self.ctx.subdomains))
-            
+
             await self._run_tool(
                 "httpx",
                 ["-l", "temp_subs.txt", "-sc", "-td", "-ip", "-title", "-silent"],
-                self._parse_httpx_results
+                self._parse_httpx_results,
             )
-            
+
             if temp_file.exists():
                 temp_file.unlink()
 
         # 4. Deep Parameter / Link Discovery
         await self._run_tool(
-            "katana",
-            ["-u", self.ctx.target, "-d", "5", "-silent"],
-            self._parse_endpoints
+            "katana", ["-u", self.ctx.target, "-d", "5", "-silent"], self._parse_endpoints
         )
 
         logger.info("Enhanced Native Recon complete.")
@@ -135,7 +136,7 @@ class FullReconRunner(BaseModule):
                 *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
             )
             stdout, stderr = await proc.communicate()
-            
+
             if proc.returncode == 0:
                 output = stdout.decode().splitlines()
                 parser_callback(output)

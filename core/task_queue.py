@@ -1,4 +1,4 @@
-﻿"""
+"""
 AGENT ANONMUSK — Async Task Queue
 ================================
 Phase 1: Lightweight asyncio-based local task runner.
@@ -38,6 +38,7 @@ class TaskPriority(int, Enum):
 @dataclass
 class Task:
     """A unit of work in the queue."""
+
     id: str
     name: str
     func: Callable[..., Coroutine]
@@ -49,9 +50,7 @@ class Task:
     error: Optional[str] = None
     retries: int = 0
     max_retries: int = 3
-    created_at: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     started_at: Optional[str] = None
     finished_at: Optional[str] = None
 
@@ -126,20 +125,15 @@ class AsyncTaskQueue:
                 if task.retries < task.max_retries:
                     task.state = TaskState.RETRY
                     console.print(
-                        f"[yellow]↻ Retrying[/] {task.name} "
-                        f"({task.retries}/{task.max_retries})"
+                        f"[yellow]↻ Retrying[/] {task.name} ({task.retries}/{task.max_retries})"
                     )
                     # Re-queue with backoff
-                    await asyncio.sleep(2 ** task.retries)
-                    self._queue.put_nowait(
-                        (task.priority.value, self._counter, task)
-                    )
+                    await asyncio.sleep(2**task.retries)
+                    self._queue.put_nowait((task.priority.value, self._counter, task))
                     self._counter += 1
                 else:
                     task.state = TaskState.FAILED
-                    console.print(
-                        f"[bold red]✗ Failed[/] {task.name}: {e}"
-                    )
+                    console.print(f"[bold red]✗ Failed[/] {task.name}: {e}")
             finally:
                 task.finished_at = datetime.now(timezone.utc).isoformat()
 
@@ -159,11 +153,7 @@ class AsyncTaskQueue:
         if not self._queue.empty():
             await self.run_all()
 
-        return {
-            tid: t.result
-            for tid, t in self._tasks.items()
-            if t.state == TaskState.DONE
-        }
+        return {tid: t.result for tid, t in self._tasks.items() if t.state == TaskState.DONE}
 
     def get_result(self, task_id: str) -> Any:
         """Get the result of a completed task."""

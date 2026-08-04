@@ -1,13 +1,15 @@
 """Tests for core.context module."""
 
-import json
 import tempfile
 from pathlib import Path
 
-import pytest
 from core.context import (
-    ScanContext, Finding, Evidence, Endpoint,
-    TechStack, Severity, VulnType,
+    ScanContext,
+    Finding,
+    Evidence,
+    Endpoint,
+    Severity,
+    VulnType,
 )
 
 

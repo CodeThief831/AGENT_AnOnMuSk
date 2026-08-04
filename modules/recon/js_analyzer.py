@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any
 
 import httpx
 from bs4 import BeautifulSoup
@@ -21,7 +20,9 @@ logger = logging.getLogger("anonmusk_agent.recon.js")
 
 SECRET_PATTERNS = {
     "aws_access_key": re.compile(r"AKIA[0-9A-Z]{16}"),
-    "aws_secret_key": re.compile(r"(?:aws_secret_access_key|AWS_SECRET)\s*[:=]\s*['\"]?([A-Za-z0-9/+=]{40})['\"]?"),
+    "aws_secret_key": re.compile(
+        r"(?:aws_secret_access_key|AWS_SECRET)\s*[:=]\s*['\"]?([A-Za-z0-9/+=]{40})['\"]?"
+    ),
     "google_api_key": re.compile(r"AIza[0-9A-Za-z\-_]{35}"),
     "github_token": re.compile(r"gh[ps]_[A-Za-z0-9_]{36,}"),
     "slack_token": re.compile(r"xox[bpsa]-[0-9]{10,13}-[0-9A-Za-z-]+"),
@@ -81,8 +82,7 @@ class JSAnalyzer(BaseModule):
             verify=False,
             headers={
                 "User-Agent": scan_config.get(
-                    "user_agent",
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/125.0.0.0"
+                    "user_agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/125.0.0.0"
                 ),
             },
         ) as client:
@@ -130,14 +130,17 @@ class JSAnalyzer(BaseModule):
                     for secret_type, pattern in SECRET_PATTERNS.items():
                         for match in pattern.finditer(content):
                             secret_val = match.group(0)[:100]  # truncate
-                            all_secrets.append({
-                                "type": secret_type,
-                                "value": secret_val,
-                                "source": js_url,
-                            })
+                            all_secrets.append(
+                                {
+                                    "type": secret_type,
+                                    "value": secret_val,
+                                    "source": js_url,
+                                }
+                            )
                             logger.warning(
                                 "🔑 Secret found [%s] in %s",
-                                secret_type, js_url,
+                                secret_type,
+                                js_url,
                             )
 
                 except Exception as e:
@@ -148,12 +151,15 @@ class JSAnalyzer(BaseModule):
 
         # Add JS-discovered endpoints to the main endpoint list
         from core.context import Endpoint
+
         for ep in all_endpoints:
-            self.ctx.endpoints.append(Endpoint(
-                url=ep,
-                source="js_analysis",
-                interesting=True,
-            ))
+            self.ctx.endpoints.append(
+                Endpoint(
+                    url=ep,
+                    source="js_analysis",
+                    interesting=True,
+                )
+            )
 
         self._log_complete(
             f"Extracted {len(all_endpoints)} endpoints and "

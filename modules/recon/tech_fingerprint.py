@@ -1,4 +1,4 @@
-﻿"""
+"""
 AGENT ANONMUSK — Technology Fingerprinter
 ========================================
 Identifies the tech stack (server, framework, WAF) to tailor attacks.
@@ -198,8 +198,12 @@ class TechFingerprinter(BaseModule):
 
                     # Capture interesting headers
                     for header in [
-                        "x-powered-by", "server", "x-aspnet-version",
-                        "x-generator", "x-drupal-cache", "x-varnish",
+                        "x-powered-by",
+                        "server",
+                        "x-aspnet-version",
+                        "x-generator",
+                        "x-drupal-cache",
+                        "x-varnish",
                     ]:
                         val = resp.headers.get(header)
                         if val:

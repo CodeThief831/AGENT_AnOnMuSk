@@ -1,1 +1,1 @@
-﻿"""AGENT ANONMUSK Modules Package."""
+"""AGENT ANONMUSK Modules Package."""

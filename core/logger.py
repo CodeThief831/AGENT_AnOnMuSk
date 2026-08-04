@@ -91,6 +91,7 @@ class JSONFormatter(logging.Formatter):
 
 # ── Display Helpers ──────────────────────────────────────────
 
+
 def print_banner():
     """Print the Agent AnonMusk startup banner."""
     banner = Text()
@@ -101,13 +102,15 @@ def print_banner():
     banner.append("    ─── ", style="dim red")
     banner.append("v1.0.0 │ Recon → Reason → Act", style="dim")
 
-    console.print(Panel(
-        banner,
-        border_style="red",
-        padding=(1, 2),
-        title="[bold red]⚡ AGENT ANONMUSK ⚡[/]",
-        subtitle="[dim]github.com/royal/anonmusk_agent[/]",
-    ))
+    console.print(
+        Panel(
+            banner,
+            border_style="red",
+            padding=(1, 2),
+            title="[bold red]⚡ AGENT ANONMUSK ⚡[/]",
+            subtitle="[dim]github.com/royal/anonmusk_agent[/]",
+        )
+    )
 
 
 def print_phase(phase: str, message: str):
@@ -119,13 +122,13 @@ def print_phase(phase: str, message: str):
 def print_finding(title: str, severity: str, cvss: float, url: str = ""):
     """Print a finding highlight."""
     style = SEVERITY_STYLES.get(severity, "bold")
-    console.print(Panel(
-        f"[{style}]{severity.upper()}[/] │ CVSS {cvss:.1f}\n"
-        f"[bold]{title}[/]\n"
-        f"[dim]{url}[/]",
-        border_style="red" if severity in ("critical", "high") else "yellow",
-        title="[bold]🔓 FINDING[/]",
-    ))
+    console.print(
+        Panel(
+            f"[{style}]{severity.upper()}[/] │ CVSS {cvss:.1f}\n[bold]{title}[/]\n[dim]{url}[/]",
+            border_style="red" if severity in ("critical", "high") else "yellow",
+            title="[bold]🔓 FINDING[/]",
+        )
+    )
 
 
 def print_stats(stats: dict[str, Any]):

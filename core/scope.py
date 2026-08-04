@@ -1,4 +1,4 @@
-﻿"""
+"""
 AGENT ANONMUSK — Scope Validator
 ==============================
 Enforces target scope before every HTTP request and tool invocation.
@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import fnmatch
 import ipaddress
-import re
 from pathlib import Path
 from typing import Optional
 from urllib.parse import urlparse
@@ -50,17 +49,13 @@ class ScopeValidator:
         """Parse CIDR notation entries into network objects."""
         for pattern in self.include_patterns:
             try:
-                self._include_networks.append(
-                    ipaddress.ip_network(pattern, strict=False)
-                )
+                self._include_networks.append(ipaddress.ip_network(pattern, strict=False))
             except ValueError:
                 pass  # not a CIDR — it's a domain pattern
 
         for pattern in self.exclude_patterns:
             try:
-                self._exclude_networks.append(
-                    ipaddress.ip_network(pattern, strict=False)
-                )
+                self._exclude_networks.append(ipaddress.ip_network(pattern, strict=False))
             except ValueError:
                 pass
 
@@ -69,12 +64,8 @@ class ScopeValidator:
         """Load scope from a text file."""
         path = Path(filepath)
         if not path.exists():
-            console.print(
-                f"[bold red]⚠ Scope file not found:[/] {filepath}", highlight=False
-            )
-            console.print(
-                "[yellow]Create a scope.txt with target domains (one per line)[/]"
-            )
+            console.print(f"[bold red]⚠ Scope file not found:[/] {filepath}", highlight=False)
+            console.print("[yellow]Create a scope.txt with target domains (one per line)[/]")
             return cls(include_patterns=[], exclude_patterns=[])
 
         includes = []
@@ -167,7 +158,4 @@ class ScopeValidator:
             )
 
     def __repr__(self) -> str:
-        return (
-            f"ScopeValidator(include={self.include_patterns}, "
-            f"exclude={self.exclude_patterns})"
-        )
+        return f"ScopeValidator(include={self.include_patterns}, exclude={self.exclude_patterns})"

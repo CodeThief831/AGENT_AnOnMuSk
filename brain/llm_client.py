@@ -1,4 +1,4 @@
-﻿"""
+"""
 AGENT ANONMUSK — LLM Client
 ===========================
 Unified interface for OpenAI and Anthropic APIs with retry logic,
@@ -10,7 +10,6 @@ from __future__ import annotations
 import json
 import logging
 import os
-import time
 from typing import Any, Optional
 
 logger = logging.getLogger("AGENT ANONMUSK.brain.llm")
@@ -69,9 +68,11 @@ class LLMClient:
 
         if self.provider == "openai":
             from openai import AsyncOpenAI
+
             self._client = AsyncOpenAI(api_key=self.api_key)
         elif self.provider == "anthropic":
             import anthropic
+
             self._client = anthropic.AsyncAnthropic(api_key=self.api_key)
         else:
             raise ValueError(f"Unknown LLM provider: {self.provider}")
@@ -107,12 +108,15 @@ class LLMClient:
             except Exception as e:
                 logger.warning(
                     "LLM request failed (attempt %d/%d): %s",
-                    attempt + 1, self.retry_attempts, e,
+                    attempt + 1,
+                    self.retry_attempts,
+                    e,
                 )
                 if attempt < self.retry_attempts - 1:
-                    delay = self.retry_delay * (2 ** attempt)
+                    delay = self.retry_delay * (2**attempt)
                     logger.debug("Retrying in %.1fs...", delay)
                     import asyncio
+
                     await asyncio.sleep(delay)
                 else:
                     logger.error("LLM request failed after %d attempts", self.retry_attempts)
@@ -233,6 +237,7 @@ def _extract_json(text: str) -> Optional[str]:
     """Try to extract a JSON object or array from text."""
     # Look for ```json blocks
     import re
+
     json_block = re.search(r"```(?:json)?\s*\n(.*?)\n```", text, re.DOTALL)
     if json_block:
         return json_block.group(1).strip()
@@ -249,5 +254,5 @@ def _extract_json(text: str) -> Optional[str]:
             elif ch == end_char:
                 depth -= 1
                 if depth == 0:
-                    return text[start:i + 1]
+                    return text[start : i + 1]
     return None

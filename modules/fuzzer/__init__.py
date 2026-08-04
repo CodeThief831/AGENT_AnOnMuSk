@@ -1,1 +1,1 @@
-﻿"""AGENT ANONMUSK Fuzzer Module."""
+"""AGENT ANONMUSK Fuzzer Module."""

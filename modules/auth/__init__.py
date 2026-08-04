@@ -1,1 +1,1 @@
-﻿"""AGENT ANONMUSK Auth Module."""
+"""AGENT ANONMUSK Auth Module."""

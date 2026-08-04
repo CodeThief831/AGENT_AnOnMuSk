@@ -1,1 +1,1 @@
-﻿"""AGENT ANONMUSK Tests Package."""
+"""AGENT ANONMUSK Tests Package."""

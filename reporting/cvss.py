@@ -1,4 +1,4 @@
-﻿"""
+"""
 AGENT ANONMUSK — CVSS v3.1 Calculator
 =====================================
 Automated CVSS score calculation based on vulnerability context.
@@ -7,7 +7,6 @@ Automated CVSS score calculation based on vulnerability context.
 from __future__ import annotations
 
 from enum import Enum
-from typing import Optional
 
 from core.context import VulnType
 
@@ -25,7 +24,7 @@ class AttackComplexity(Enum):
 
 
 class PrivilegesRequired(Enum):
-    NONE = ("N", 0.85, 0.85)    # (code, unchanged_scope, changed_scope)
+    NONE = ("N", 0.85, 0.85)  # (code, unchanged_scope, changed_scope)
     LOW = ("L", 0.62, 0.68)
     HIGH = ("H", 0.27, 0.50)
 
@@ -222,16 +221,19 @@ class CVSSCalculator:
             },
         }
 
-        profile = VULN_PROFILES.get(vuln_type, {
-            "attack_vector": AttackVector.NETWORK,
-            "attack_complexity": AttackComplexity.LOW,
-            "privileges_required": PrivilegesRequired.NONE,
-            "user_interaction": UserInteraction.NONE,
-            "scope": Scope.UNCHANGED,
-            "confidentiality": Impact.LOW,
-            "integrity": Impact.NONE,
-            "availability": Impact.NONE,
-        })
+        profile = VULN_PROFILES.get(
+            vuln_type,
+            {
+                "attack_vector": AttackVector.NETWORK,
+                "attack_complexity": AttackComplexity.LOW,
+                "privileges_required": PrivilegesRequired.NONE,
+                "user_interaction": UserInteraction.NONE,
+                "scope": Scope.UNCHANGED,
+                "confidentiality": Impact.LOW,
+                "integrity": Impact.NONE,
+                "availability": Impact.NONE,
+            },
+        )
 
         return calc.calculate(**profile)
 
@@ -239,6 +241,7 @@ class CVSSCalculator:
 def _roundup(value: float) -> float:
     """CVSS roundup function (round up to 1 decimal)."""
     import math
+
     return math.ceil(value * 10) / 10
 
 

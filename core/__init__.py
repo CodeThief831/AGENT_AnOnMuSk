@@ -1,4 +1,4 @@
-﻿"""
+"""
 AGENT ANONMUSK Core Package
 ========================
 State machine orchestrator, scan context, scope enforcement, and task management.

@@ -1,1 +1,1 @@
-﻿"""AGENT ANONMUSK Injection Module."""
+"""AGENT ANONMUSK Injection Module."""

@@ -1,10 +1,14 @@
 """Tests for reporting.cvss module."""
 
-import pytest
 from reporting.cvss import (
-    CVSSCalculator, AttackVector, AttackComplexity,
-    PrivilegesRequired, UserInteraction, Scope,
-    Impact, severity_from_score,
+    CVSSCalculator,
+    AttackVector,
+    AttackComplexity,
+    PrivilegesRequired,
+    UserInteraction,
+    Scope,
+    Impact,
+    severity_from_score,
 )
 from core.context import VulnType
 
